@@ -11,7 +11,7 @@
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
     <!--
      The following two permissions are not required to use
-     Google Maps Android API v2, but are recommended.
+     Google Maps Android API v2, but are recommended.
     -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -38,33 +38,36 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" /> 
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name="org.cityofchicago.dob.bfax.Building"
             android:label="@string/title_activity_building" >
-           <!--  <intent-filter>
+
+            <!--
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                <category android:name="android.intent.category.LAUNCHER" />   
-            </intent-filter> -->
+            </intent-filter>
+
+            -->
         </activity>
-        
+
         <!-- Single List Item Activity -->
         <activity
-            android:label="Contact"
-            android:name="org.cityofchicago.dob.bfax.SingleContactActivity" >
+            android:name="org.cityofchicago.dob.bfax.SingleContactActivity"
+            android:label="Contact" >
         </activity>
-        
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyCdqbLiOLxa6LTo1jij2evYkq_Xzae1K44" />
-        
+    
     </application>
 
 </manifest>

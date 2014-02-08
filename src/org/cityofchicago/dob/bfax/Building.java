@@ -16,8 +16,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.cityofchicago.dob.bfax.TabListener;
 
-
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
+//import android.app.ActionBar.TabListener;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -25,9 +31,12 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
@@ -36,20 +45,12 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
-public class Building extends ListActivity {
+public class Building extends ListActivity   {
 
 	private ProgressDialog pDialog;
-
-	// URL to get contacts JSON
-	//private static String url = "http://api.androidhive.info/contacts/";
-	//private static String url = "https://data.cityofchicago.org/resource/building-permits.json?%24select=street_number%2Cstreet_direction%2Cstreet_name%2C_issue_date%2Clatitude%2Clongitude%2C_permit_type%2Cwork_description%2Cpermit_&%24where=street_number%20=%20611%20and%20street_name%20=%20%27WELLS%27";
-	private static String url = null;
+   private static String url = null;
 	// JSON Node names
 	private static final String TAG_CONTACTS = "contacts";
-	//private static final String TAG_ID = "id";
-	//private static final String TAG_NAME = "name";
-	//private static final String TAG_EMAIL = "email";
-	//private static final String TAG_ADDRESS = "address";
 	private static final String TAG_ID = "permit_";
 	private static final String TAG_NAME = "street_name";
 	private static final String TAG_EMAIL = "street_number";
@@ -68,17 +69,43 @@ public class Building extends ListActivity {
 	ArrayList<HashMap<String, String>> contactList;
 	TextView t1 = null;
 	String msg = " ";
-	
-	//test[0] = "";
+	  Fragment fragment;
+	  ActionBar.Tab Tab1, Tab2, Tab3;
+	    Fragment fragmentTab1 = new FragmentTab1();
+	    Fragment fragmentTab2 = new FragmentTab2();
+	   
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.building_page);
-
 		contactList = new ArrayList<HashMap<String, String>>();
-
 		
+		 ActionBar actionBar = getActionBar();
+	        // Hide Actionbar Icon
+	        actionBar.setDisplayShowHomeEnabled(false);
+	 
+	        // Hide Actionbar Title
+	        actionBar.setDisplayShowTitleEnabled(false);
+	 
+	        // Create Actionbar Tabs
+		 actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		 
+		// Set Tab Icon and Titles
+	      Tab1 = actionBar.newTab().setText("Permits");
+	        Tab2 = actionBar.newTab().setText("Violations");
+	       // Tab3 = actionBar.newTab().setText("Tab3");
+	 
+	        // Set Tab Listeners
+	        Tab1.setTabListener(new TabListener(fragmentTab1));
+	        Tab2.setTabListener(new TabListener(fragmentTab2));
+	        //Tab3.setTabListener(new TabListener(fragmentTab3));
+	 
+	        // Add tabs to actionbar
+	        actionBar.addTab(Tab1);
+	        actionBar.addTab(Tab2);
+	        //actionBar.addTab(Tab3);
+		 
 		Bundle b = getIntent().getExtras();
 
 		t1 = (TextView) findViewById(R.id.title);
@@ -99,15 +126,19 @@ public class Building extends ListActivity {
 		}
 		if (street.equals("LaSalle")){street = "La%20Salle";}
 		else if (street.equals("Des Plaines")){street = "Desplaines";}
+		//pass the address of the location to data source 
 		url = "https://data.cityofchicago.org/resource/building-permits.json?%24select=street_number%2Cstreet_direction%2Cstreet_name%2C_issue_date%2Clatitude%2Clongitude%2C_permit_type%2Cwork_description%2Cpermit_&%24where=street_number%20=%20"+adrNo+"%20and%20street_direction%20=%20%27"+dir+"%27and%20street_name%20=%20%27"+street+"%27";
 		
 		
 
 		// Calling async task to get json
 		new GetContacts().execute();
+
 		
-	//	t1.setText("abc");
+		
 	}
+	
+	 
 
 	/**
 	 * Async task class to get json by making HTTP call
@@ -142,9 +173,7 @@ public class Building extends ListActivity {
 					//JSONObject jsonObj = new JSONObject(jsonStr);
 					 contacts = new JSONArray(jsonStr);
 					// Getting JSON Array node
-					//contacts = jsonObj.getJSONArray(TAG_CONTACTS);
-					//contacts = jsonObj.getJSONArray("0");
-					// looping through All Contacts
+					
 					 if (contacts.length() >= 1) {
 					for (int i = 0; i < contacts.length(); i++) {
 						JSONObject c = contacts.getJSONObject(i);
@@ -155,9 +184,6 @@ public class Building extends ListActivity {
 						//String address = c.getString(TAG_ADDRESS);
 						String gender = c.getString(TAG_GENDER);
 
-						// Phone node is JSON Object
-						//JSONObject phone = c.getJSONObject(TAG_PHONE);
-						//String mobile = phone.getString(TAG_PHONE_MOBILE);
 						String mobile = c.getString(TAG_ADDRESS);
 						String home = c.getString(TAG_PHONE);
 						//String office = phone.getString(TAG_PHONE_OFFICE);
@@ -178,6 +204,7 @@ public class Building extends ListActivity {
 					 } else 
 					 {msg = "No permits issued for this address. Below are the nearest address for which a permit is issued.";
 					 getLatLong(address+", Chicago, IL");
+					 //if no data matching the search criteria is found - find addresses within 120 feet of the search criteria. User can get details on these nearby buildings
 					 url = "https://data.cityofchicago.org/resource/ydr8-5enu.json?%24select=street_number%2Cstreet_direction%2Cstreet_name&%24where=%20within_circle(location,"+lat+","+lon+",%20120)&$group=street_name,street_direction,street_number&$limit=10";
 					 jsonStr = sh.makeServiceCall(url, ServiceHandler.GET);
 					 
@@ -230,8 +257,11 @@ public class Building extends ListActivity {
 			 * */
 			ListAdapter adapter = null;
 			if (msg.equals(" ")){
-
+				//if matching data is found in the data source run this set of code. or else use the code in the else section
+				//which will display information on nearby buildings
+//View vw = findViewById(R.layout.fragment1);
 				ListView lv = getListView();
+//ListView lv = (ListView) vw;
 				// Listview on item click listener
 				lv.setOnItemClickListener(new OnItemClickListener() {
 
@@ -257,7 +287,8 @@ public class Building extends ListActivity {
 					}
 				});
 				
-				
+				//setContentView(R.layout.fragment1);
+		
 			adapter = new SimpleAdapter(
 					Building.this, contactList,
 					R.layout.list_item, new String[] { TAG_NAME, TAG_EMAIL,
@@ -269,6 +300,8 @@ public class Building extends ListActivity {
 				
 				
 				ListView lv = getListView();
+				//View vw = findViewById(R.layout.fragment1);
+//ListView lv = (ListView) vw;
 				// Listview on item click listener
 				lv.setOnItemClickListener(new OnItemClickListener() {
 
@@ -286,9 +319,7 @@ public class Building extends ListActivity {
 						// Starting single contact activity
 						Intent in = new Intent(getApplicationContext(),
 								Building.class);
-						//in.putExtra(TAG_NAME, name);
-						//in.putExtra(TAG_EMAIL, cost);
-						//in.putExtra(TAG_PHONE_MOBILE, description);
+						
 						Bundle b = new Bundle();
 						b.putString("address", name);
 		                 in.putExtras(b); 
@@ -296,9 +327,8 @@ public class Building extends ListActivity {
 
 					}
 				});
-				
 				adapter = new SimpleAdapter(
-						Building.this, contactList,
+						Building.this, contactList, 
 						R.layout.list_item, new String[] {TAG_NAME}, new int[] { R.id.name});
 			}
 			t1.setText(address + " "+ msg);
@@ -339,5 +369,7 @@ lon=location.getLongitude();
         }
  
     }
-
+    
+    
+    
 }

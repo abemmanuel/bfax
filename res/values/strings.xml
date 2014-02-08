@@ -6,5 +6,10 @@
     <string name="intro"> "Search for an Address or Tap on a building on the map"</string>
     <string name="title_activity_building">BuildingActivity</string>
     <string name="title">Permits</string>
+    <string name="title_activity_violation">ViolationActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_tab">TabActivity</string>
+    <string name="Fragment1">Fr1</string>
+    <string name="Fragment2">Fr2</string>
 
 </resources>

@@ -1,0 +1,16 @@
+NU Mobile App 305
+Individual Assignment Grade Sheet
+Abraham Emmanuel
+
+Product backlog and sprint backlog are on Scrumy.com:  _10_/10
+Use at least three screens: _10_/10
+Use at least two unique layouts: _10_/10
+Use at least two simple views: _10_/10
+Use at least one complex or data driven views: _10_/10
+Proper use of intent and bundle: _10_/10
+Menu is present and allows navigation among screens: _5_/10
+All String literals are in strings.xml.  _8_/10
+Source code has proper documentation/JavaDoc.  Source code follows proper Java naming
+conventions, and is in good form:  _7_/10
+Do something extra beyond the minimum requirements stated here: _10_/10
+What did you do? Read data from a JSON data source list them on ListView. Strted working putting different lists on different tabs. Get a GPS lat /lon from a map and parse the address of the location. Location address is shared back and forth between acivities. 
