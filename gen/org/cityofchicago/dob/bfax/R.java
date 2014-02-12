@@ -210,18 +210,18 @@ containing a value of this type.
     }
     public static final class id {
         public static final int action_settings=0x7f050014;
+        public static final int address=0x7f050011;
         public static final int button1=0x7f050008;
+        public static final int description=0x7f050012;
         public static final int editText1=0x7f050007;
-        public static final int email=0x7f050012;
         public static final int email_label=0x7f05000c;
         public static final int fragment_container=0x7f05000e;
         public static final int hybrid=0x7f050004;
         public static final int imageView1=0x7f050009;
         public static final int intro1=0x7f050005;
+        public static final int issdate=0x7f050013;
         public static final int map=0x7f050006;
-        public static final int mobile=0x7f050013;
         public static final int mobile_label=0x7f05000d;
-        public static final int name=0x7f050011;
         public static final int name_label=0x7f05000b;
         public static final int none=0x7f050000;
         public static final int normal=0x7f050001;

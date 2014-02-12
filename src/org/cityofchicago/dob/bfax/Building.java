@@ -12,9 +12,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.cityofchicago.dob.bfax.TabListener;
 
@@ -50,23 +47,22 @@ public class Building extends ListActivity   {
 	private ProgressDialog pDialog;
    private static String url = null;
 	// JSON Node names
-	private static final String TAG_CONTACTS = "contacts";
 	private static final String TAG_ID = "permit_";
-	private static final String TAG_NAME = "street_name";
-	private static final String TAG_EMAIL = "street_number";
-	private static final String TAG_ADDRESS = "street_direction";
-	private static final String TAG_GENDER = "work_description";
-	private static final String TAG_PHONE = "_issue_date";
-	private static final String TAG_PHONE_MOBILE = "mobile";
+	private static final String TAG_STNAME = "street_name";
+	private static final String TAG_STNUMBER = "street_number";
+	private static final String TAG_STDIRECTION = "street_direction";
+	private static final String TAG_DESCRIPTION = "work_description";
+	private static final String TAG_ISSDATE = "_issue_date";
+	private static final String TAG_ADDRESS = "address";
 
 	String temp1;
 	int temp2;
 	Double lat, lon;
 	// contacts JSONArray
-	JSONArray contacts = null;
+	JSONArray permits = null;
 	String address;
 	// Hashmap for ListView
-	ArrayList<HashMap<String, String>> contactList;
+	ArrayList<HashMap<String, String>> permitsList;
 	TextView t1 = null;
 	String msg = " ";
 	  Fragment fragment;
@@ -79,7 +75,7 @@ public class Building extends ListActivity   {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.building_page);
-		contactList = new ArrayList<HashMap<String, String>>();
+		permitsList = new ArrayList<HashMap<String, String>>();
 		
 		 ActionBar actionBar = getActionBar();
 	        // Hide Actionbar Icon
@@ -87,7 +83,7 @@ public class Building extends ListActivity   {
 	 
 	        // Hide Actionbar Title
 	        actionBar.setDisplayShowTitleEnabled(false);
-	 
+	       
 	        // Create Actionbar Tabs
 		 actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		 
@@ -132,7 +128,7 @@ public class Building extends ListActivity   {
 		
 
 		// Calling async task to get json
-		new GetContacts().execute();
+		new GetPermits().execute();
 
 		
 		
@@ -143,7 +139,7 @@ public class Building extends ListActivity   {
 	/**
 	 * Async task class to get json by making HTTP call
 	 * */
-	private class GetContacts extends AsyncTask<Void, Void, Void> {
+	private class GetPermits extends AsyncTask<Void, Void, Void> {
 
 		@Override
 		protected void onPreExecute() {
@@ -171,34 +167,32 @@ public class Building extends ListActivity   {
 				
 				try {
 					//JSONObject jsonObj = new JSONObject(jsonStr);
-					 contacts = new JSONArray(jsonStr);
+					 permits = new JSONArray(jsonStr);
 					// Getting JSON Array node
 					
-					 if (contacts.length() >= 1) {
-					for (int i = 0; i < contacts.length(); i++) {
-						JSONObject c = contacts.getJSONObject(i);
+					 if (permits.length() >= 1) {
+					for (int i = 0; i < permits.length(); i++) {
+						JSONObject c = permits.getJSONObject(i);
 						
 						String id = c.getString(TAG_ID);
-						String name = c.getString(TAG_NAME);
-						String email = c.getString(TAG_EMAIL);
-						//String address = c.getString(TAG_ADDRESS);
-						String gender = c.getString(TAG_GENDER);
+						String st_number = c.getString(TAG_STNUMBER);
+						String st_direction = c.getString(TAG_STDIRECTION);
+						String st_name = c.getString(TAG_STNAME);
+						String description = c.getString(TAG_DESCRIPTION);
+						String iss_date = c.getString(TAG_ISSDATE);
 
-						String mobile = c.getString(TAG_ADDRESS);
-						String home = c.getString(TAG_PHONE);
-						//String office = phone.getString(TAG_PHONE_OFFICE);
 
-						// tmp hashmap for single contact
+						// tmp hashmap for permit details
 						HashMap<String, String> contact = new HashMap<String, String>();
 
 						// adding each child node to HashMap key => value
 						contact.put(TAG_ID, id);
-						contact.put(TAG_NAME, email+' '+mobile+' '+name);
-						contact.put(TAG_EMAIL, gender);
-						contact.put(TAG_PHONE_MOBILE, home);
+						contact.put(TAG_ADDRESS, st_number+' '+st_direction+' '+st_name);
+						contact.put(TAG_DESCRIPTION, description);
+						contact.put(TAG_ISSDATE, iss_date);
 
 						// adding contact to contact list
-						contactList.add(contact);
+						permitsList.add(contact);
 					}
 					
 					 } else 
@@ -210,21 +204,20 @@ public class Building extends ListActivity   {
 					 
 					 if (jsonStr.length() >= 1) {			
 							try {
-								 contacts = new JSONArray(jsonStr);
-								 if (contacts.length() > 1) {
+								 permits = new JSONArray(jsonStr);
+								 if (permits.length() > 1) {
 	
-					 for (int i = 0; i < contacts.length(); i++) {
-							JSONObject c = contacts.getJSONObject(i);
+					 for (int i = 0; i < permits.length(); i++) {
+							JSONObject c = permits.getJSONObject(i);
 
-							String name = c.getString(TAG_NAME);
-							String email = c.getString(TAG_EMAIL);
-							String mobile = c.getString(TAG_ADDRESS);
-							HashMap<String, String> contact = new HashMap<String, String>();
+							String st_name = c.getString(TAG_STNAME);
+							String st_number = c.getString(TAG_STNUMBER);
+							String st_direction = c.getString(TAG_STDIRECTION);
+							HashMap<String, String> nearby = new HashMap<String, String>();
 							// adding each child node to HashMap key => value
-							//contact.put(TAG_NAME, email+' '+mobile+' '+name);
-							contact.put(TAG_NAME, email+' '+mobile+' '+name);
+							nearby.put(TAG_ADDRESS, st_number+' '+st_direction+' '+st_name);
 							// adding contact to contact list
-							contactList.add(contact);
+							permitsList.add(nearby);
 						}
 					 
 								 }
@@ -269,19 +262,19 @@ public class Building extends ListActivity   {
 					public void onItemClick(AdapterView<?> parent, View view,
 							int position, long id) {
 						// getting values from selected ListItem
-						String name = ((TextView) view.findViewById(R.id.name))
+						String address = ((TextView) view.findViewById(R.id.address))
 								.getText().toString();
-						String cost = ((TextView) view.findViewById(R.id.email))
+						String description = ((TextView) view.findViewById(R.id.description))
 								.getText().toString();
-						String description = ((TextView) view.findViewById(R.id.mobile))
+						String iss_date = ((TextView) view.findViewById(R.id.issdate))
 								.getText().toString();
 
 						// Starting single contact activity
 						Intent in = new Intent(getApplicationContext(),
 								SingleContactActivity.class);
-						in.putExtra(TAG_NAME, name);
-						in.putExtra(TAG_EMAIL, cost);
-						in.putExtra(TAG_PHONE_MOBILE, description);
+						in.putExtra(TAG_ADDRESS, address);
+						in.putExtra(TAG_DESCRIPTION, description);
+						in.putExtra(TAG_ISSDATE, iss_date);
 						startActivity(in);
 
 					}
@@ -290,10 +283,10 @@ public class Building extends ListActivity   {
 				//setContentView(R.layout.fragment1);
 		
 			adapter = new SimpleAdapter(
-					Building.this, contactList,
-					R.layout.list_item, new String[] { TAG_NAME, TAG_EMAIL,
-							TAG_PHONE_MOBILE }, new int[] { R.id.name,
-							R.id.email, R.id.mobile });
+					Building.this, permitsList,
+					R.layout.list_item, new String[] { TAG_ADDRESS, 
+							TAG_DESCRIPTION, TAG_ISSDATE }, new int[] { R.id.address,
+							R.id.description, R.id.issdate });
 			
 			}
 			else{
@@ -309,27 +302,24 @@ public class Building extends ListActivity   {
 					public void onItemClick(AdapterView<?> parent, View view,
 							int position, long id) {
 						// getting values from selected ListItem
-						String name = ((TextView) view.findViewById(R.id.name))
+						String Address = ((TextView) view.findViewById(R.id.address))
 								.getText().toString();
-						String cost = ((TextView) view.findViewById(R.id.email))
-								.getText().toString();
-						String description = ((TextView) view.findViewById(R.id.mobile))
-								.getText().toString();
+						
 
-						// Starting single contact activity
+						// Start building activity with a specific address
 						Intent in = new Intent(getApplicationContext(),
 								Building.class);
 						
 						Bundle b = new Bundle();
-						b.putString("address", name);
+						b.putString("address", Address);
 		                 in.putExtras(b); 
 						startActivity(in);
 
 					}
 				});
 				adapter = new SimpleAdapter(
-						Building.this, contactList, 
-						R.layout.list_item, new String[] {TAG_NAME}, new int[] { R.id.name});
+						Building.this, permitsList, 
+						R.layout.list_item, new String[] {TAG_ADDRESS}, new int[] { R.id.address});
 			}
 			t1.setText(address + " "+ msg);
 			setListAdapter(adapter);
