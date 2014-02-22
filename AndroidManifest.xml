@@ -22,7 +22,7 @@
         android:required="true" />
 
     <uses-sdk
-        android:minSdkVersion="11"
+        android:minSdkVersion="13"
         android:targetSdkVersion="18" />
 
     <application
@@ -57,7 +57,7 @@
 
         <!-- Single List Item Activity -->
         <activity
-            android:name="org.cityofchicago.dob.bfax.SingleContactActivity"
+            android:name="org.cityofchicago.dob.bfax.PermitDetails"
             android:label="Contact" >
         </activity>
 

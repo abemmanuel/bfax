@@ -10,4 +10,9 @@
         android:layout_centerVertical="true"
         android:text="@string/Fragment2" />
  
+      <ListView
+      android:id="@+id/list3"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content" />
+      
 </RelativeLayout>

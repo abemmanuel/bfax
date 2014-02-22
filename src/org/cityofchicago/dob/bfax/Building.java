@@ -1,5 +1,5 @@
 package org.cityofchicago.dob.bfax;
- 
+
 import org.cityofchicago.dob.bfax.R;
 
 import java.io.IOException;
@@ -36,6 +36,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -45,7 +46,7 @@ import android.widget.TextView;
 public class Building extends ListActivity   {
 
 	private ProgressDialog pDialog;
-   private static String url = null;
+	private static String url = null;
 	// JSON Node names
 	private static final String TAG_ID = "permit_";
 	private static final String TAG_STNAME = "street_name";
@@ -58,55 +59,63 @@ public class Building extends ListActivity   {
 	String temp1;
 	int temp2;
 	Double lat, lon;
-	// contacts JSONArray
+	// permits JSONArray
 	JSONArray permits = null;
 	String address;
 	// Hashmap for ListView
 	ArrayList<HashMap<String, String>> permitsList;
+	ArrayList<HashMap<String, String>> ViolationsList;
 	TextView t1 = null;
 	String msg = " ";
-	  Fragment fragment;
-	  ActionBar.Tab Tab1, Tab2, Tab3;
-	    Fragment fragmentTab1 = new FragmentTab1();
-	    Fragment fragmentTab2 = new FragmentTab2();
-	   
-	
+	Fragment fragment;
+	ActionBar.Tab Tab1, Tab2, Tab3;
+
+	private ListView lv2 = null;
+	private String s2[] = {"r", "s", "t", "u", "v", "w", "x"};
+	ListView lv = null;
+	private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.building_page);
 		permitsList = new ArrayList<HashMap<String, String>>();
-		
-		 ActionBar actionBar = getActionBar();
-	        // Hide Actionbar Icon
-	        actionBar.setDisplayShowHomeEnabled(false);
-	 
-	        // Hide Actionbar Title
-	        actionBar.setDisplayShowTitleEnabled(false);
-	       
-	        // Create Actionbar Tabs
-		 actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		 
+
+		Fragment fragmentTab1 = new FragmentTab1().newInstance("abc");
+		Fragment fragmentTab2 = new FragmentTab2();
+
+		ActionBar actionBar = getActionBar();
+		// Hide Actionbar Icon
+		actionBar.setDisplayShowHomeEnabled(false);
+
+		// Hide Actionbar Title
+		actionBar.setDisplayShowTitleEnabled(false);
+
+		// Create Actionbar Tabs
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+
 		// Set Tab Icon and Titles
-	      Tab1 = actionBar.newTab().setText("Permits");
-	        Tab2 = actionBar.newTab().setText("Violations");
-	       // Tab3 = actionBar.newTab().setText("Tab3");
-	 
-	        // Set Tab Listeners
-	        Tab1.setTabListener(new TabListener(fragmentTab1));
-	        Tab2.setTabListener(new TabListener(fragmentTab2));
-	        //Tab3.setTabListener(new TabListener(fragmentTab3));
-	 
-	        // Add tabs to actionbar
-	        actionBar.addTab(Tab1);
-	        actionBar.addTab(Tab2);
-	        //actionBar.addTab(Tab3);
-		 
+		Tab1 = actionBar.newTab().setText("Permits");
+		Tab2 = actionBar.newTab().setText("Violations");
+		// Tab3 = actionBar.newTab().setText("Tab3");
+		// fragmentTab1.setRetainInstance(true);
+		// Set Tab Listeners
+		//Tab1.set
+		//Fragment fr = (Fragment) getFragmentManager().findFragmentById(R.layout.fragment1);
+		Tab1.setTabListener(new TabListener(fragmentTab1));
+		Tab2.setTabListener(new TabListener(fragmentTab2));
+		//Tab3.setTabListener(new TabListener(fragmentTab3));
+
+		// Add tabs to actionbar
+		actionBar.addTab(Tab1);
+		actionBar.addTab(Tab2);
+		//actionBar.addTab(Tab3);
+
 		Bundle b = getIntent().getExtras();
 
 		t1 = (TextView) findViewById(R.id.title);
 		t1.setText( b.getString("address"));
-		
+
 		//url = "https://data.cityofchicago.org/resource/ydr8-5enu.json?%24select=street_number%2Cstreet_direction%2Cstreet_name%2C_issue_date%2Clatitude%2Clongitude%2C_permit_type%2Cwork_description%2Cpermit_&%24where=%20within_circle(location,%20"+lat+","+lon+",%2050)";
 		address = b.getString("address");
 		String[] adr = address.split(" ");
@@ -124,17 +133,17 @@ public class Building extends ListActivity   {
 		else if (street.equals("Des Plaines")){street = "Desplaines";}
 		//pass the address of the location to data source 
 		url = "https://data.cityofchicago.org/resource/building-permits.json?%24select=street_number%2Cstreet_direction%2Cstreet_name%2C_issue_date%2Clatitude%2Clongitude%2C_permit_type%2Cwork_description%2Cpermit_&%24where=street_number%20=%20"+adrNo+"%20and%20street_direction%20=%20%27"+dir+"%27and%20street_name%20=%20%27"+street+"%27";
-		
-		
+
+
 
 		// Calling async task to get json
 		new GetPermits().execute();
+		//new GetViolations().execute();
+		
+		
 
-		
-		
 	}
-	
-	 
+
 
 	/**
 	 * Async task class to get json by making HTTP call
@@ -163,79 +172,79 @@ public class Building extends ListActivity   {
 			Log.d("Response: ", "> " + jsonStr);
 
 			if (jsonStr.length() >= 1) {
-				
-				
+
+
 				try {
 					//JSONObject jsonObj = new JSONObject(jsonStr);
-					 permits = new JSONArray(jsonStr);
+					permits = new JSONArray(jsonStr);
 					// Getting JSON Array node
-					
-					 if (permits.length() >= 1) {
-					for (int i = 0; i < permits.length(); i++) {
-						JSONObject c = permits.getJSONObject(i);
-						
-						String id = c.getString(TAG_ID);
-						String st_number = c.getString(TAG_STNUMBER);
-						String st_direction = c.getString(TAG_STDIRECTION);
-						String st_name = c.getString(TAG_STNAME);
-						String description = c.getString(TAG_DESCRIPTION);
-						String iss_date = c.getString(TAG_ISSDATE);
 
-
-						// tmp hashmap for permit details
-						HashMap<String, String> contact = new HashMap<String, String>();
-
-						// adding each child node to HashMap key => value
-						contact.put(TAG_ID, id);
-						contact.put(TAG_ADDRESS, st_number+' '+st_direction+' '+st_name);
-						contact.put(TAG_DESCRIPTION, description);
-						contact.put(TAG_ISSDATE, iss_date);
-
-						// adding contact to contact list
-						permitsList.add(contact);
-					}
-					
-					 } else 
-					 {msg = "No permits issued for this address. Below are the nearest address for which a permit is issued.";
-					 getLatLong(address+", Chicago, IL");
-					 //if no data matching the search criteria is found - find addresses within 120 feet of the search criteria. User can get details on these nearby buildings
-					 url = "https://data.cityofchicago.org/resource/ydr8-5enu.json?%24select=street_number%2Cstreet_direction%2Cstreet_name&%24where=%20within_circle(location,"+lat+","+lon+",%20120)&$group=street_name,street_direction,street_number&$limit=10";
-					 jsonStr = sh.makeServiceCall(url, ServiceHandler.GET);
-					 
-					 if (jsonStr.length() >= 1) {			
-							try {
-								 permits = new JSONArray(jsonStr);
-								 if (permits.length() > 1) {
-	
-					 for (int i = 0; i < permits.length(); i++) {
+					if (permits.length() >= 1) {
+						for (int i = 0; i < permits.length(); i++) {
 							JSONObject c = permits.getJSONObject(i);
 
-							String st_name = c.getString(TAG_STNAME);
+							String id = c.getString(TAG_ID);
 							String st_number = c.getString(TAG_STNUMBER);
 							String st_direction = c.getString(TAG_STDIRECTION);
-							HashMap<String, String> nearby = new HashMap<String, String>();
+							String st_name = c.getString(TAG_STNAME);
+							String description = c.getString(TAG_DESCRIPTION);
+							String iss_date = c.getString(TAG_ISSDATE);
+
+
+							// tmp hashmap for permit details
+							HashMap<String, String> permit_details = new HashMap<String, String>();
+
 							// adding each child node to HashMap key => value
-							nearby.put(TAG_ADDRESS, st_number+' '+st_direction+' '+st_name);
-							// adding contact to contact list
-							permitsList.add(nearby);
+							permit_details.put(TAG_ID, id);
+							permit_details.put(TAG_ADDRESS, st_number+' '+st_direction+' '+st_name);
+							permit_details.put(TAG_DESCRIPTION, description);
+							permit_details.put(TAG_ISSDATE, iss_date);
+
+							// adding detials to the list view
+							permitsList.add(permit_details);
 						}
-					 
-								 }
-					 
-							} catch (JSONException e) {
-								e.printStackTrace();
+
+					} else 
+					{msg = "No permits issued for this address. Below are the nearest address for which a permit is issued.";
+					getLatLong(address+", Chicago, IL");
+					//if no data matching the search criteria is found - find addresses within 120 feet of the search criteria. User can get details on these nearby buildings
+					url = "https://data.cityofchicago.org/resource/ydr8-5enu.json?%24select=street_number%2Cstreet_direction%2Cstreet_name&%24where=%20within_circle(location,"+lat+","+lon+",%20120)&$group=street_name,street_direction,street_number&$limit=10";
+					jsonStr = sh.makeServiceCall(url, ServiceHandler.GET);
+
+					if (jsonStr.length() >= 1) {			
+						try {
+							permits = new JSONArray(jsonStr);
+							if (permits.length() > 1) {
+
+								for (int i = 0; i < permits.length(); i++) {
+									JSONObject c = permits.getJSONObject(i);
+
+									String st_name = c.getString(TAG_STNAME);
+									String st_number = c.getString(TAG_STNUMBER);
+									String st_direction = c.getString(TAG_STDIRECTION);
+									HashMap<String, String> nearby = new HashMap<String, String>();
+									// adding each child node to HashMap key => value
+									nearby.put(TAG_ADDRESS, st_number+' '+st_direction+' '+st_name);
+									// adding permit details to list view
+									permitsList.add(nearby);
+								}
+
 							}
-					 
-					 }
-					 
-					 }
+
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+
+					}
+
+					}
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
 			} else {
 				Log.e("ServiceHandler", "Couldnt get any data from the url");
 			}
-			
+
 			return null;
 		}
 
@@ -248,13 +257,15 @@ public class Building extends ListActivity   {
 			/**
 			 * Updating parsed JSON data into ListView
 			 * */
+			//ListAdapter adapter = null;
 			ListAdapter adapter = null;
+	
+
 			if (msg.equals(" ")){
 				//if matching data is found in the data source run this set of code. or else use the code in the else section
 				//which will display information on nearby buildings
-//View vw = findViewById(R.layout.fragment1);
-				ListView lv = getListView();
-//ListView lv = (ListView) vw;
+
+				lv = (ListView) findViewById (R.id.list2);
 				// Listview on item click listener
 				lv.setOnItemClickListener(new OnItemClickListener() {
 
@@ -269,32 +280,39 @@ public class Building extends ListActivity   {
 						String iss_date = ((TextView) view.findViewById(R.id.issdate))
 								.getText().toString();
 
-						// Starting single contact activity
+						// Starting permit details activity
 						Intent in = new Intent(getApplicationContext(),
-								SingleContactActivity.class);
-						in.putExtra(TAG_ADDRESS, address);
-						in.putExtra(TAG_DESCRIPTION, description);
-						in.putExtra(TAG_ISSDATE, iss_date);
+								PermitDetails.class);
+						in.putExtra("address", address);
+						in.putExtra("description", description);
+						in.putExtra("issdt", iss_date);
 						startActivity(in);
 
 					}
 				});
-				
+
 				//setContentView(R.layout.fragment1);
-		
-			adapter = new SimpleAdapter(
-					Building.this, permitsList,
-					R.layout.list_item, new String[] { TAG_ADDRESS, 
-							TAG_DESCRIPTION, TAG_ISSDATE }, new int[] { R.id.address,
-							R.id.description, R.id.issdate });
-			
+				//lv2 = (ListView) findViewById (R.id.list2);
+				//lv2.setAdapter(new ArrayAdapter<String> (Building.this, R.layout.list_item, s2));
+				// lv2.setAdapter(new ArrayAdapter <HashMap<String, String>> (Building.this, R.layout.list_item, permitsList));
+				//lv2.setAdapter(new ArrayAdapter<String> (Building.this, android.R.layout.simple_list_item_1, s2));
+				//ArrayAdapter <HashMap<String, String>> t = new ArrayAdapter <HashMap<String, String>>(Building.this, R.layout.list_item, permitsList) ;
+				//setListAdapter(t);
+				// lv.setAdapter(adapter);
+
+				adapter = new SimpleAdapter(
+						Building.this, permitsList,
+						R.layout.list_item, new String[] { TAG_ADDRESS, 
+								TAG_DESCRIPTION, TAG_ISSDATE }, new int[] { R.id.address,
+								R.id.description, R.id.issdate }
+						);
+
 			}
 			else{
-				
-				
-				ListView lv = getListView();
-				//View vw = findViewById(R.layout.fragment1);
-//ListView lv = (ListView) vw;
+
+
+				//ListView lv = getListView();
+				lv = (ListView) findViewById (R.id.list2);
 				// Listview on item click listener
 				lv.setOnItemClickListener(new OnItemClickListener() {
 
@@ -304,15 +322,15 @@ public class Building extends ListActivity   {
 						// getting values from selected ListItem
 						String Address = ((TextView) view.findViewById(R.id.address))
 								.getText().toString();
-						
+
 
 						// Start building activity with a specific address
 						Intent in = new Intent(getApplicationContext(),
 								Building.class);
-						
+
 						Bundle b = new Bundle();
 						b.putString("address", Address);
-		                 in.putExtras(b); 
+						in.putExtras(b); 
 						startActivity(in);
 
 					}
@@ -322,44 +340,54 @@ public class Building extends ListActivity   {
 						R.layout.list_item, new String[] {TAG_ADDRESS}, new int[] { R.id.address});
 			}
 			t1.setText(address + " "+ msg);
-			setListAdapter(adapter);
+
+			
+			
+			
+			//setListAdapter(adapter);
+			lv.setAdapter(adapter);
 		}
 
 	}
-	
+
 	@Override
 	public void onBackPressed() {
 		Intent in = new Intent(Building.this,MainActivity.class);
-		 Bundle b = new Bundle();
-         //b.putDouble("lat", lat); 
-         //b.putDouble("lon", lon); 
-		 b.putString("address",address);
-         in.putExtras(b); 
+		Bundle b = new Bundle();
+		//b.putDouble("lat", lat); 
+		//b.putDouble("lon", lon); 
+		b.putString("address",address);
+		in.putExtras(b); 
 		startActivity(in);
 		finish();
 	}
+
+	private  void getLatLong(String youraddress) {
+		Geocoder coder = new Geocoder(this);
+		List<Address> address;
+
+		try {
+			address = coder.getFromLocationName(youraddress,5);
+			if (address == null) {
+				// return null;
+			}
+			Address location = address.get(0);
+
+			lat=location.getLatitude();
+			lon=location.getLongitude();
+			//LatLng point = new LatLng(lat,lon);
+
+		}catch (Exception e) {
+			//return false;
+		}
+
+	}
+
+
 	
-    private  void getLatLong(String youraddress) {
-    	Geocoder coder = new Geocoder(this);
-    	List<Address> address;
 
-    	try {
-    	    address = coder.getFromLocationName(youraddress,5);
-    	    if (address == null) {
-    	       // return null;
-    	    }
-    	    Address location = address.get(0);
+	
+	
+	
 
-lat=location.getLatitude();
-lon=location.getLongitude();
-//LatLng point = new LatLng(lat,lon);
-
-    	}catch (Exception e) {
-            //return false;
-        }
- 
-    }
-    
-    
-    
 }
