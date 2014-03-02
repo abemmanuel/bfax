@@ -47,6 +47,7 @@ public class Building extends ListActivity   {
 
 	private ProgressDialog pDialog;
 	private static String url = null;
+	private static String urlV = null;
 	// JSON Node names
 	private static final String TAG_ID = "permit_";
 	private static final String TAG_STNAME = "street_name";
@@ -55,12 +56,18 @@ public class Building extends ListActivity   {
 	private static final String TAG_DESCRIPTION = "work_description";
 	private static final String TAG_ISSDATE = "_issue_date";
 	private static final String TAG_ADDRESS = "address";
+	private static final String TAG_INSP_CATEGORY = "inspection_category";
+	private static final String TAG_VIOLATION_DT = "violation_date";
+	private static final String TAG_INSP_STATUS = "inspection_status";
+	private static final String TAG_VIOL_DESCR = "violation_description";
+	private static final String TAG_VIOL_CODE = "violation_code";
 
 	String temp1;
 	int temp2;
 	Double lat, lon;
 	// permits JSONArray
 	JSONArray permits = null;
+	JSONArray violations = null;
 	String address;
 	// Hashmap for ListView
 	ArrayList<HashMap<String, String>> permitsList;
@@ -69,10 +76,10 @@ public class Building extends ListActivity   {
 	String msg = " ";
 	Fragment fragment;
 	ActionBar.Tab Tab1, Tab2, Tab3;
+	ListAdapter adapterV = null;
 
-	private ListView lv2 = null;
-	private String s2[] = {"r", "s", "t", "u", "v", "w", "x"};
 	ListView lv = null;
+	ListView lv2 = null;
 	private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
 
 	@Override
@@ -80,9 +87,10 @@ public class Building extends ListActivity   {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.building_page);
 		permitsList = new ArrayList<HashMap<String, String>>();
-
+		ViolationsList = new ArrayList<HashMap<String, String>>();
+		
 		Fragment fragmentTab1 = new FragmentTab1().newInstance("abc");
-		Fragment fragmentTab2 = new FragmentTab2();
+		Fragment fragmentTab2 = new FragmentTab2().newInstance("xyz");;
 
 		ActionBar actionBar = getActionBar();
 		// Hide Actionbar Icon
@@ -133,7 +141,7 @@ public class Building extends ListActivity   {
 		else if (street.equals("Des Plaines")){street = "Desplaines";}
 		//pass the address of the location to data source 
 		url = "https://data.cityofchicago.org/resource/building-permits.json?%24select=street_number%2Cstreet_direction%2Cstreet_name%2C_issue_date%2Clatitude%2Clongitude%2C_permit_type%2Cwork_description%2Cpermit_&%24where=street_number%20=%20"+adrNo+"%20and%20street_direction%20=%20%27"+dir+"%27and%20street_name%20=%20%27"+street+"%27";
-
+		urlV = "https://data.cityofchicago.org/resource/22u3-xenr.json?%24select=address%2Cinspection_category%2cviolation_description%2Cinspection_number%2Cviolation_code%2Cviolation_date%2Cinspection_status%2Clongitude%2Clatitude%2Cviolation_ordinance&%24where=address%20=%20%27611%20S%20WELLS%20ST%27&$limit=3";
 
 
 		// Calling async task to get json
@@ -207,7 +215,7 @@ public class Building extends ListActivity   {
 					} else 
 					{msg = "No permits issued for this address. Below are the nearest address for which a permit is issued.";
 					getLatLong(address+", Chicago, IL");
-					//if no data matching the search criteria is found - find addresses within 120 feet of the search criteria. User can get details on these nearby buildings
+					//if no data matching the search criteria is found - find addresses within 120 meters of the search location. User can get details on these nearby buildings
 					url = "https://data.cityofchicago.org/resource/ydr8-5enu.json?%24select=street_number%2Cstreet_direction%2Cstreet_name&%24where=%20within_circle(location,"+lat+","+lon+",%20120)&$group=street_name,street_direction,street_number&$limit=10";
 					jsonStr = sh.makeServiceCall(url, ServiceHandler.GET);
 
@@ -244,6 +252,46 @@ public class Building extends ListActivity   {
 			} else {
 				Log.e("ServiceHandler", "Couldnt get any data from the url");
 			}
+			
+	//to get violation data using violations url
+	String jsonStrV = sh.makeServiceCall(urlV, ServiceHandler.GET);
+
+
+			if (jsonStrV.length() >= 1) {	
+				try{
+					violations = new JSONArray(jsonStrV);
+					if (violations.length() > 1) {
+
+						for (int i = 0; i < violations.length(); i++) {
+							JSONObject c = violations.getJSONObject(i);
+
+							String insp_category = c.getString(TAG_INSP_CATEGORY);
+							String address = c.getString(TAG_ADDRESS);
+							String viol_dt = c.getString(TAG_VIOLATION_DT);
+							String insp_stat = c.getString(TAG_INSP_STATUS);
+							String viol_descr = c.getString(TAG_VIOL_DESCR);
+							String viol_cd = c.getString(TAG_VIOL_CODE);
+							
+							HashMap<String, String> viol = new HashMap<String, String>();
+							// adding each child node to HashMap key =>  	value
+							viol.put(TAG_ADDRESS, address);
+							viol.put(TAG_VIOLATION_DT, viol_dt);
+							viol.put(TAG_INSP_CATEGORY, insp_category);
+							viol.put(TAG_VIOL_DESCR, viol_descr);
+							viol.put(TAG_VIOL_CODE, viol_cd);
+							// adding violations details to list view
+							ViolationsList.add(viol);}
+						}
+				
+			} catch (JSONException e) {
+				e.printStackTrace();}
+			
+			} else {
+				Log.e("ServiceHandler", "Couldnt get any data from the urlV");
+			}
+			
+			
+			
 
 			return null;
 		}
@@ -259,13 +307,14 @@ public class Building extends ListActivity   {
 			 * */
 			//ListAdapter adapter = null;
 			ListAdapter adapter = null;
-	
+
 
 			if (msg.equals(" ")){
 				//if matching data is found in the data source run this set of code. or else use the code in the else section
 				//which will display information on nearby buildings
 
 				lv = (ListView) findViewById (R.id.list2);
+				//lv2 = (ListView) findViewById (R.id.listView1);
 				// Listview on item click listener
 				lv.setOnItemClickListener(new OnItemClickListener() {
 
@@ -340,12 +389,21 @@ public class Building extends ListActivity   {
 						R.layout.list_item, new String[] {TAG_ADDRESS}, new int[] { R.id.address});
 			}
 			t1.setText(address + " "+ msg);
-
-			
-			
 			
 			//setListAdapter(adapter);
+		
 			lv.setAdapter(adapter);
+			
+//for updating the violations			
+
+			lv2 = (ListView) findViewById (R.id.list5);
+			
+			adapter = new SimpleAdapter(
+					Building.this, ViolationsList, 
+					R.layout.list_item, new String[] {TAG_ADDRESS}, new int[] {R.id.address});
+			
+			//lv2.setAdapter(adapter);//this does not work
+			//lv2.setAdapter(adapter);//this works but put the list in the first tab itself.
 		}
 
 	}
