@@ -403,7 +403,7 @@ public class Building extends ListActivity   {
 					R.layout.list_item, new String[] {TAG_ADDRESS}, new int[] {R.id.address});
 			
 			//lv2.setAdapter(adapter);//this does not work
-			//lv2.setAdapter(adapter);//this works but put the list in the first tab itself.
+			//lv.setAdapter(adapter);//this works but put the list in the first tab itself.
 		}
 
 	}
