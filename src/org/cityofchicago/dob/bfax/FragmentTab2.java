@@ -26,12 +26,12 @@ public class FragmentTab2 extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment2, container, false);
+        View rootView2 = inflater.inflate(R.layout.fragment2, container, false);
         
-        TextView test = (TextView) rootView.findViewById(R.id.t2);
+        TextView test = (TextView) rootView2.findViewById(R.id.t2);
         test.setText( args.getCharSequence("string"));
         
-        return rootView;
+        return rootView2;
     }
  
 }

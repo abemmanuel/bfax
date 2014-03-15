@@ -26,8 +26,8 @@ public class FragmentTab1 extends Fragment {
             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment1, container, false);
        
-        TextView test = (TextView) rootView.findViewById(R.id.t1);
-        test.setText( args.getCharSequence("string"));
+       // TextView test = (TextView) rootView.findViewById(R.id.t1);
+       // test.setText( args.getCharSequence("string"));
         
        // super.onCreate(savedInstanceState);
         //Fragment fr = (Fragment) findViewById(R.id.fr1);

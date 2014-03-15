@@ -29,6 +29,7 @@ import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -42,6 +43,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class Building extends ListActivity   {
 
@@ -55,6 +57,7 @@ public class Building extends ListActivity   {
 	private static final String TAG_STDIRECTION = "street_direction";
 	private static final String TAG_DESCRIPTION = "work_description";
 	private static final String TAG_ISSDATE = "_issue_date";
+	private static final String TAG_PERMIT_TYPE = "_permit_type";
 	private static final String TAG_ADDRESS = "address";
 	private static final String TAG_INSP_CATEGORY = "inspection_category";
 	private static final String TAG_VIOLATION_DT = "violation_date";
@@ -89,8 +92,8 @@ public class Building extends ListActivity   {
 		permitsList = new ArrayList<HashMap<String, String>>();
 		ViolationsList = new ArrayList<HashMap<String, String>>();
 		
-		Fragment fragmentTab1 = new FragmentTab1().newInstance("abc");
-		Fragment fragmentTab2 = new FragmentTab2().newInstance("xyz");;
+		Fragment fragmentTab1 = new FragmentTab1();
+		Fragment fragmentTab2 = new FragmentTab2();
 
 		ActionBar actionBar = getActionBar();
 		// Hide Actionbar Icon
@@ -101,7 +104,8 @@ public class Building extends ListActivity   {
 
 		// Create Actionbar Tabs
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-
+		
+		
 		// Set Tab Icon and Titles
 		Tab1 = actionBar.newTab().setText("Permits");
 		Tab2 = actionBar.newTab().setText("Violations");
@@ -110,6 +114,7 @@ public class Building extends ListActivity   {
 		// Set Tab Listeners
 		//Tab1.set
 		//Fragment fr = (Fragment) getFragmentManager().findFragmentById(R.layout.fragment1);
+
 		Tab1.setTabListener(new TabListener(fragmentTab1));
 		Tab2.setTabListener(new TabListener(fragmentTab2));
 		//Tab3.setTabListener(new TabListener(fragmentTab3));
@@ -124,7 +129,6 @@ public class Building extends ListActivity   {
 		t1 = (TextView) findViewById(R.id.title);
 		t1.setText( b.getString("address"));
 
-		//url = "https://data.cityofchicago.org/resource/ydr8-5enu.json?%24select=street_number%2Cstreet_direction%2Cstreet_name%2C_issue_date%2Clatitude%2Clongitude%2C_permit_type%2Cwork_description%2Cpermit_&%24where=%20within_circle(location,%20"+lat+","+lon+",%2050)";
 		address = b.getString("address");
 		String[] adr = address.split(" ");
 		String adrNo = adr[0]; 
@@ -132,15 +136,17 @@ public class Building extends ListActivity   {
 		if (adrRange.length >1){
 			adrNo = adrRange[0];
 		}
-		String dir = adr[1]; 
+		String dir = adr[1].toLowerCase(); 
 		String street = adr[2]; 
+		street = street.toLowerCase();
 		if (adr.length > 4){
 			street= street+"%20"+adr[3];
 		}
 		if (street.equals("LaSalle")){street = "La%20Salle";}
 		else if (street.equals("Des Plaines")){street = "Desplaines";}
 		//pass the address of the location to data source 
-		url = "https://data.cityofchicago.org/resource/building-permits.json?%24select=street_number%2Cstreet_direction%2Cstreet_name%2C_issue_date%2Clatitude%2Clongitude%2C_permit_type%2Cwork_description%2Cpermit_&%24where=street_number%20=%20"+adrNo+"%20and%20street_direction%20=%20%27"+dir+"%27and%20street_name%20=%20%27"+street+"%27";
+		url = "https://data.cityofchicago.org/resource/building-permits.json?%24select=street_number%2Cstreet_direction%2Cstreet_name%2C_issue_date%2Clatitude%2Clongitude%2C_permit_type%2Cwork_description%2Cpermit_&%24where=street_number%20=%20"+adrNo+"%20and%20street_direction%20=%20%27"+dir+"%27and%20street_name%20=%20%27"+street+"%27%22";
+		//url="https://data.cityofchicago.org/resource/building-permits.json?%24select=street_number%2Cstreet_direction%2Cstreet_name%2C_issue_date%2Clatitude%2Clongitude%2C_permit_type%2Cwork_description%2Cpermit_&%24where=street_number%20=%20401%20and%20street_direction%20=%20%27n%27and%20street_name%20=%20%27wabash%27%20and%20permit_%20=%20%27100453351%27";
 		urlV = "https://data.cityofchicago.org/resource/22u3-xenr.json?%24select=address%2Cinspection_category%2cviolation_description%2Cinspection_number%2Cviolation_code%2Cviolation_date%2Cinspection_status%2Clongitude%2Clatitude%2Cviolation_ordinance&%24where=address%20=%20%27611%20S%20WELLS%20ST%27&$limit=3";
 
 
@@ -152,7 +158,20 @@ public class Building extends ListActivity   {
 
 	}
 
+	@Override
+    protected void onSaveInstanceState(Bundle outState) {
+                super.onSaveInstanceState(outState);
+                Toast.makeText(
+                                        this,
+                                        "onSaveInstanceState: tab is"
+                                                                + getActionBar().getSelectedNavigationIndex(),
+                                        Toast.LENGTH_SHORT).show();
+                String TAB_KEY_INDEX =  String.valueOf(getActionBar().getSelectedNavigationIndex());
+                outState.putInt(TAB_KEY_INDEX, getActionBar()
+                                        .getSelectedNavigationIndex());
 
+    }
+	
 	/**
 	 * Async task class to get json by making HTTP call
 	 * */
@@ -196,8 +215,21 @@ public class Building extends ListActivity   {
 							String st_direction = c.getString(TAG_STDIRECTION);
 							String st_name = c.getString(TAG_STNAME);
 							String description = c.getString(TAG_DESCRIPTION);
-							String iss_date = c.getString(TAG_ISSDATE);
-
+							String iss_date = "Issued On: Not Available";
+							
+							if (!c.isNull(TAG_ISSDATE))
+							 {
+							String dt_string = c.getString(TAG_ISSDATE);
+							
+							String[] dt_parts = dt_string.split("-");
+							String year = dt_parts[0]; 
+							String month = dt_parts[1]; 
+							String day_raw = dt_parts[2];
+							String[] day_parts = day_raw.split("T");
+							String day =  day_parts[0];
+							iss_date = "Issued On: "+month+"/"+day+"/"+year;}
+							
+							String permit_type = c.getString(TAG_PERMIT_TYPE);
 
 							// tmp hashmap for permit details
 							HashMap<String, String> permit_details = new HashMap<String, String>();
@@ -207,6 +239,7 @@ public class Building extends ListActivity   {
 							permit_details.put(TAG_ADDRESS, st_number+' '+st_direction+' '+st_name);
 							permit_details.put(TAG_DESCRIPTION, description);
 							permit_details.put(TAG_ISSDATE, iss_date);
+							permit_details.put(TAG_PERMIT_TYPE, permit_type+'('+id+')');
 
 							// adding detials to the list view
 							permitsList.add(permit_details);
@@ -254,7 +287,7 @@ public class Building extends ListActivity   {
 			}
 			
 	//to get violation data using violations url
-	String jsonStrV = sh.makeServiceCall(urlV, ServiceHandler.GET);
+	/*String jsonStrV = sh.makeServiceCall(urlV, ServiceHandler.GET);
 
 
 			if (jsonStrV.length() >= 1) {	
@@ -288,7 +321,7 @@ public class Building extends ListActivity   {
 			
 			} else {
 				Log.e("ServiceHandler", "Couldnt get any data from the urlV");
-			}
+			}*/
 			
 			
 			
@@ -324,6 +357,8 @@ public class Building extends ListActivity   {
 						// getting values from selected ListItem
 						String address = ((TextView) view.findViewById(R.id.address))
 								.getText().toString();
+						String permit_type = ((TextView) view.findViewById(R.id.permit_type))
+								.getText().toString();
 						String description = ((TextView) view.findViewById(R.id.description))
 								.getText().toString();
 						String iss_date = ((TextView) view.findViewById(R.id.issdate))
@@ -332,7 +367,9 @@ public class Building extends ListActivity   {
 						// Starting permit details activity
 						Intent in = new Intent(getApplicationContext(),
 								PermitDetails.class);
+						//in.putExtra("permit_num", permit_num);
 						in.putExtra("address", address);
+						in.putExtra("permit_type", permit_type);
 						in.putExtra("description", description);
 						in.putExtra("issdt", iss_date);
 						startActivity(in);
@@ -351,8 +388,8 @@ public class Building extends ListActivity   {
 
 				adapter = new SimpleAdapter(
 						Building.this, permitsList,
-						R.layout.list_item, new String[] { TAG_ADDRESS, 
-								TAG_DESCRIPTION, TAG_ISSDATE }, new int[] { R.id.address,
+						R.layout.list_item, new String[] { TAG_ADDRESS, TAG_PERMIT_TYPE,
+								TAG_DESCRIPTION, TAG_ISSDATE }, new int[] { R.id.address, R.id.permit_type,
 								R.id.description, R.id.issdate }
 						);
 
@@ -396,13 +433,13 @@ public class Building extends ListActivity   {
 			
 //for updating the violations			
 
-			lv2 = (ListView) findViewById (R.id.list5);
+		//	lv2 = (ListView) findViewById (R.id.list5);
 			
-			adapter = new SimpleAdapter(
-					Building.this, ViolationsList, 
-					R.layout.list_item, new String[] {TAG_ADDRESS}, new int[] {R.id.address});
+		//	adapter = new SimpleAdapter(
+		//			Building.this, ViolationsList, 
+			//		R.layout.list_item, new String[] {TAG_ADDRESS}, new int[] {R.id.address});
 			
-			//lv2.setAdapter(adapter);//this does not work
+		//lv2.setAdapter(adapter);//this does not work
 			//lv.setAdapter(adapter);//this works but put the list in the first tab itself.
 		}
 

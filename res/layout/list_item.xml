@@ -7,8 +7,11 @@
     android:padding="10dp"
     android:paddingLeft="10dp"
     android:paddingRight="10dp" > 	
- 
-    <!-- Name Label -->
+   
+   
+
+        
+    <!-- Address Label -->
  
     <TextView
         android:id="@+id/address"
@@ -19,8 +22,22 @@
         android:textColor="#43bd00"
         android:textSize="16sp"
         android:textStyle="bold" />
+    
+      <!-- Permit number Label -->
  
-    <!-- Email label -->
+
+ 
+    <TextView
+        android:id="@+id/permit_type"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="2dip"
+        android:paddingTop="3dip"
+        android:textColor="#5d5d5d"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+ 
+    <!-- description label -->
     <TextView
         android:id="@+id/description"
         android:layout_width="fill_parent"
@@ -28,7 +45,7 @@
         android:paddingBottom="2dip"
         android:textColor="#acacac" />
  
-    <!-- Mobile number label -->
+    <!-- Issue date label -->
     <TextView
         android:id="@+id/issdate"
         android:layout_width="wrap_content"
